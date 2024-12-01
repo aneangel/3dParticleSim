@@ -24,6 +24,59 @@ public:
             color[2] = 1.0f;
         }
 
+static bool checkCollision(const Particle& p1, const Particle& p2) {
+    float dx = p1.x - p2.x;
+    float dy = p1.y - p2.y;
+    float dz = p1.z - p2.z;
+
+    float distanceSquared = dx * dx + dy * dy + dz * dz;
+    float radiusSum = p1.radius + p2.radius;
+
+    return distanceSquared < (radiusSum * radiusSum);
+}
+
+static void resolveCollision(Particle& p1, Particle& p2) {
+    float dx = p1.x - p2.x;
+    float dy = p1.y - p2.y;
+    float dz = p1.z - p2.z;
+
+    float distance = std::sqrt(dx * dx + dy * dy + dz * dz);
+    if (distance == 0.0f) return;
+
+    float nx = dx / distance;
+    float ny = dy / distance;
+    float nz = dz / distance;
+
+    float vx = p1.velocityX - p2.velocityX;
+    float vy = p1.velocityY - p2.velocityY;
+    float vz = p1.velocityZ - p2.velocityZ;
+
+    float dot = vx * nx + vy * ny + vz * nz;
+
+    if (dot > 0.0f) return;
+
+    float restitution = 0.0f;
+    float impulse = -(1.0f + restitution) * dot / 2.0f;
+
+    p1.velocityX += impulse * nx;
+    p1.velocityY += impulse * ny;
+    p1.velocityZ += impulse * nz;
+
+    p2.velocityX -= impulse * nx;
+    p2.velocityY -= impulse * ny;
+    p2.velocityZ -= impulse * nz;
+
+    // Separate the particles slightly to avoid overlapping
+    float overlap = 0.5f * (p1.radius + p2.radius - distance);
+    p1.x += overlap * nx;
+    p1.y += overlap * ny;
+    p1.z += overlap * nz;
+
+    p2.x -= overlap * nx;
+    p2.y -= overlap * ny;
+    p2.z -= overlap * nz;
+}
+
 void update(float deltaTime, const glm::mat4& rotationMatrix) {
     
     // glm::vec3 velocityVec(velocityX, velocityY, velocityZ);

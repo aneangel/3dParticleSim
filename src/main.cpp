@@ -3,9 +3,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
 
 #include "Kinematics.h"
 #include "Particles.h"
+
+std::vector<Particle> particles;
 
 float rotationX = 0.0f;
 float rotationY = 0.0f;
@@ -13,6 +18,10 @@ double lastMouseX, lastMouseY;
 bool isDragging = false;
 
 float lastFrameTime = 0.0f;
+
+float randomFloat(float min, float max) {
+    return min + static_cast<float>(rand() / (static_cast<float>(RAND_MAX / (max - min))));
+}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -110,6 +119,17 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
+    srand(static_cast<unsigned>(time(0)));
+
+    for (int i = 0; i < 100; i++) {
+        float randomX = randomFloat(-0.5f, 0.5f);
+        float randomY = randomFloat(-0.5f, 0.5f);
+        float randomZ = randomFloat(-0.5f, 0.5f);
+        particles.emplace_back(randomX, randomY, randomZ, 0.025f);
+    }
+
+    float lastFrameTime = 0.0f;
+
     while (!glfwWindowShouldClose(window)) {
         float currentFrameTime = static_cast<float>(glfwGetTime());
         float deltaTime = currentFrameTime - lastFrameTime;
@@ -127,14 +147,26 @@ int main() {
                     0.0, 0.0, 0.0,
                     0.0, 1.0, 0.0);
 
+        // Apply cube rotation
         glRotatef(rotationX, 1.0f, 0.0f, 0.0f);
         glRotatef(rotationY, 0.0f, 1.0f, 0.0f);
 
         glm::mat4 rotationMatrix = getCubeRotationMatrix(rotationX, rotationY);
         drawWireframeCube();
 
-        particle.update(deltaTime, rotationMatrix);
-        particle.render();
+        // Check and resolve collisions between all particle pairs
+        for (size_t i = 0; i < particles.size(); ++i) {
+            for (size_t j = i + 1; j < particles.size(); ++j) {
+                if (Particle::checkCollision(particles[i], particles[j])) {
+                    Particle::resolveCollision(particles[i], particles[j]);
+                }
+            }
+        }
+
+        for (auto& particle : particles) {
+            particle.update(deltaTime, rotationMatrix);
+            particle.render();
+        };
 
         glfwSwapBuffers(window);
         glfwPollEvents();
