@@ -1,5 +1,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 #include "Kinematics.h"
@@ -38,6 +40,13 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
         lastMouseX = xpos;
         lastMouseY = ypos;
     }
+}
+
+glm::mat4 getCubeRotationMatrix(float rotationX, float rotationY) {
+    glm::mat4 rotation = glm::mat4(1.0f);
+    rotation = glm::rotate(rotation, glm::radians(rotationX), glm::vec3(1.0f, 0.0f, 0.0f));
+    rotation = glm::rotate(rotation, glm::radians(rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
+    return rotation;
 }
 
 void drawWireframeCube() {
@@ -121,11 +130,11 @@ int main() {
         glRotatef(rotationX, 1.0f, 0.0f, 0.0f);
         glRotatef(rotationY, 0.0f, 1.0f, 0.0f);
 
-        // drawCube();
+        glm::mat4 rotationMatrix = getCubeRotationMatrix(rotationX, rotationY);
         drawWireframeCube();
 
+        particle.update(deltaTime, rotationMatrix);
         particle.render();
-        particle.update(deltaTime);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

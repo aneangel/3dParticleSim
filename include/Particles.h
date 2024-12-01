@@ -24,9 +24,17 @@ public:
             color[2] = 1.0f;
         }
 
-void update(float deltaTime) {
+void update(float deltaTime, const glm::mat4& rotationMatrix) {
+    
+    glm::vec3 velocityVec(velocityX, velocityY, velocityZ);
+    velocityVec = glm::vec3(rotationMatrix * glm::vec4(velocityVec, 0.0f));
+
+    velocityX = velocityVec.x;
+    velocityY = velocityVec.y;
+    velocityZ = velocityVec.z;
+
     // Apply gravity
-    Kinematics::applyGravity(velocityY, y, deltaTime);
+    Kinematics::applyGravity(velocityY, y, deltaTime, rotationMatrix);
 
     // Handle collisions with cube boundaries
     Kinematics::handleCollision(x, y, z, velocityX, velocityY, velocityZ, radius);

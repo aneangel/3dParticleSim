@@ -10,7 +10,12 @@ class Kinematics {
 public:
     static constexpr float gravity = -1.8f;
 
-    static void applyGravity(float& veloticyY, float& posY, float deltaTime) {
+    static void applyGravity(float& veloticyY, float& posY, float deltaTime, const glm::mat4& rotationMatrix) {
+        
+        glm::vec3 gravityVec(0.0f, gravity, 0.0f);
+
+        gravityVec = glm::vec3(rotationMatrix * glm::vec4(gravityVec, 0.0f));
+        
         veloticyY += gravity * deltaTime;
         posY += veloticyY * deltaTime;
     }
