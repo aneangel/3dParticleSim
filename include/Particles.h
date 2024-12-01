@@ -26,15 +26,20 @@ public:
 
 void update(float deltaTime, const glm::mat4& rotationMatrix) {
     
-    glm::vec3 velocityVec(velocityX, velocityY, velocityZ);
-    velocityVec = glm::vec3(rotationMatrix * glm::vec4(velocityVec, 0.0f));
+    // glm::vec3 velocityVec(velocityX, velocityY, velocityZ);
+    // velocityVec = glm::vec3(rotationMatrix * glm::vec4(velocityVec, 0.0f));
 
-    velocityX = velocityVec.x;
-    velocityY = velocityVec.y;
-    velocityZ = velocityVec.z;
+    // velocityX = velocityVec.x;
+    // velocityY = velocityVec.y;
+    // velocityZ = velocityVec.z;
 
     // Apply gravity
-    Kinematics::applyGravity(velocityY, y, deltaTime, rotationMatrix);
+    Kinematics::applyGravity(velocityX, velocityY, velocityZ, deltaTime, rotationMatrix);
+
+     // Update position based on velocity
+    x += velocityX * deltaTime;
+    y += velocityY * deltaTime;
+    z += velocityZ * deltaTime;
 
     // Handle collisions with cube boundaries
     Kinematics::handleCollision(x, y, z, velocityX, velocityY, velocityZ, radius);

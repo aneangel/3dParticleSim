@@ -10,14 +10,16 @@ class Kinematics {
 public:
     static constexpr float gravity = -1.8f;
 
-    static void applyGravity(float& veloticyY, float& posY, float deltaTime, const glm::mat4& rotationMatrix) {
+    static void applyGravity(float& velocityX, float& velocityY, float& velocityZ, float deltaTime, const glm::mat4& rotationMatrix) {
         
         glm::vec3 gravityVec(0.0f, gravity, 0.0f);
 
         gravityVec = glm::vec3(rotationMatrix * glm::vec4(gravityVec, 0.0f));
-        
-        veloticyY += gravity * deltaTime;
-        posY += veloticyY * deltaTime;
+
+        // Apply transformed gravity to velocity
+        velocityX += gravityVec.x * deltaTime;
+        velocityY += gravityVec.y * deltaTime;
+        velocityZ += gravityVec.z * deltaTime;
     }
 
     static void handleCollision(float& x, float& y, float& z,
@@ -44,8 +46,20 @@ public:
 
         // Collision detection with top face
         if (y + radius > max) {
-            y = max - radius - 0.001f;  // Push slightly inside the cube
-            velocityY = -velocityY * restitution;
+            y = max - radius - 0.001f;  
+            velocityY = -velocityY * restitution; // Reverse and dampen horizontal velocity
+        } else if (x - radius < -0.5f) {
+            x = -0.5f + radius;  
+            velocityX = -velocityX * restitution;  // Reverse and dampen horizontal velocity
+        } else if (x + radius > 0.5f) {
+            x = 0.5f - radius;  
+            velocityX = -velocityX * restitution;  // Reverse and dampen horizontal velocity
+        } else if (z + radius > 0.5f) {
+            z = 0.5f - radius;  
+            velocityZ = -velocityZ * restitution;  // Reverse and dampen depth velocity
+        } else if (z - radius < -0.5f) {
+            z = -0.5f + radius;  
+            velocityZ = -velocityZ * restitution;  // Reverse and dampen depth velocity
         }
     }
 };
